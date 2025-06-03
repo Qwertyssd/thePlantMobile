@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:theplantmobile/Services/UserPlantsService.dart';
 
 import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
 import 'pages/notification_page.dart';
+import 'pages/user_garden_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,13 +104,18 @@ class HomeNavigator extends StatefulWidget {
   @override
   State<HomeNavigator> createState() => _HomeNavigatorState();
 }
+final userPlantService = UserPlantService(baseUrl: 'https://10.0.2.2:8001');
 
 class _HomeNavigatorState extends State<HomeNavigator> {
   int _selectedIndex = 0;
 
+
+
+
   static final List<Widget> _pages = <Widget>[
     HomeTabPage(),
     GardenPage(),
+    UserGardenPage(userPlantService: userPlantService),
     NotificationPage(),
     AccountPage(),
   ];
@@ -127,6 +134,7 @@ class _HomeNavigatorState extends State<HomeNavigator> {
         destinations: const <NavigationDestination>[
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.settings), label: 'Garden'),
+          NavigationDestination(icon: Icon(Icons.settings), label: 'UserGarden'),
           NavigationDestination(icon: Icon(Icons.explore), label: 'Notification'),
           NavigationDestination(icon: Icon(Icons.person), label: 'Account'),
         ],
