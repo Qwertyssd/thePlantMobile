@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:theplantmobile/auth/auth.dart';
-import 'firebase_options.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
+import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
 import 'pages/notification_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -19,9 +19,79 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Navigation Example',
-      home: HomeNavigator(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+// Этот виджет решает, показывать экран авторизации или основной экран
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(), // отслеживаем изменения состояния аутентификации
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator()); // пока ждем - loader
+        }
+        if (snapshot.hasData) {
+          return const HomeNavigator();
+        }
+        // Если нет пользователя — показываем экран авторизации
+        return const SignInPage();
+      },
+    );
+  }
+}
+
+// Экран авторизации через Google
+class SignInPage extends StatefulWidget {
+  const SignInPage({super.key});
+
+  @override
+  State<SignInPage> createState() => _SignInPageState();
+}
+
+class _SignInPageState extends State<SignInPage> {
+  bool _loading = false;
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _loading = true);
+    try {
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) {
+        setState(() => _loading = false); // пользователь отменил вход
+        return;
+      }
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      // После успешного входа StreamBuilder AuthGate автоматически переключится на HomeNavigator
+    } catch (e) {
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Ошибка входа: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: _loading
+            ? const CircularProgressIndicator()
+            : ElevatedButton.icon(
+          icon: const Icon(Icons.login),
+          label: const Text('Войти через Google'),
+          onPressed: _signInWithGoogle,
+        ),
+      ),
     );
   }
 }

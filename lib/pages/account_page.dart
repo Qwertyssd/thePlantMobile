@@ -27,6 +27,10 @@ class _ProfileState extends State<AccountPage> {
     await AuthService().signInWithGoogle();
   }
 
+  Future<void> _switchAcc() async {
+    await AuthService().switchAccount();
+  }
+
   Future<void> _signOut() async {
     await FirebaseAuth.instance.signOut();
   }
@@ -51,11 +55,17 @@ class _ProfileState extends State<AccountPage> {
               child: const Text('Регистрация / Вход'),
             ),
             const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: _switchAcc,
+              child: const Text('Змінити аккаунт'),
+            ),
+            const SizedBox(height: 10),
             if (_user != null)
               ElevatedButton(
                 onPressed: _signOut,
                 child: const Text('Выйти'),
               ),
+
           ],
         ),
       ),

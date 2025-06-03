@@ -20,4 +20,27 @@ class AuthService {
       return null;
     }
   }
+
+  /// Смена аккаунта — выход и повторный вход
+  Future<UserCredential?> switchAccount() async {
+    try {
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn().signOut();
+
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return null;
+
+      final googleAuth = await googleUser.authentication;
+
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      return await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      print('Ошибка при смене аккаунта: $e');
+      return null;
+    }
+  }
 }
