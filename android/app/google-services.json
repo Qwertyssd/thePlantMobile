@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "865639982412",
+    "project_id": "theplantmobile-4fc38",
+    "storage_bucket": "theplantmobile-4fc38.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:865639982412:android:1db799a2c263a6faf31be9",
+        "android_client_info": {
+          "package_name": "com.example.theplantmobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "865639982412-0oirecsarn1am2l4s0pu93osos5uf0qc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.theplantmobile",
+            "certificate_hash": "bdba52af27afb3c0c1cb120aa09edcb7293fdd68"
+          }
+        },
+        {
+          "client_id": "865639982412-sf8b83tk80kr6v83s1fidv0b296ct34v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ7tW2aQW9qQdfe_PUh0VAjTFEUIR-zAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "865639982412-sf8b83tk80kr6v83s1fidv0b296ct34v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "865639982412-19c263evmr9v62b3l6827hn39hgn0qk9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.theplantmobile"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
