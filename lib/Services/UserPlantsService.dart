@@ -29,7 +29,7 @@ class UserPlantService {
   final _hardcodedUserId = 'A60647F6-C96A-45E4-B0B6-2641ED33CB8E'; // ← встав потрібний userId
 
   Future<List<UserPlant>> getUserPlantsById() async {
-    final url = Uri.parse('$_baseUrl/api/UserGarden/$_hardcodedUserId');
+    final url = Uri.parse('$_baseUrl/api/UserPlant/user/$_hardcodedUserId');
     final headers = {
       'Content-Type': 'application/json',
       'Authorization': _hardcodedToken,
@@ -45,11 +45,20 @@ class UserPlantService {
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
         return data.map((json) => UserPlant.fromJson(json)).toList();
-      } else {
+      }
+      if(response.statusCode == 400)
+        {
+          throw Exception('Не вдалося отримати UserPlants 41');
+        }
+      else {
         throw Exception('Не вдалося отримати UserPlants');
       }
     } catch (e) {
       print('❗ Помилка при отриманні UserPlants: $e');
+      print('📥 URL: $url');
+      print('📥 Headers: $headers');
+
+
       rethrow;
     }
   }

@@ -6,8 +6,8 @@ class Reminder {
   final String? frequency;
   final int status;
   final String? completionType;
-  final DateTime? previousDate;
-  final String? userId;
+  final DateTime previousDate;
+  final String? userPlant;
 
   Reminder({
     required this.reminderId,
@@ -17,8 +17,8 @@ class Reminder {
     this.frequency,
     required this.status,
     this.completionType,
-    this.previousDate,
-    this.userId,
+    required this.previousDate,
+    this.userPlant,
   });
 
   factory Reminder.fromJson(Map<String, dynamic> json) {
@@ -30,8 +30,8 @@ class Reminder {
       frequency: json['frequency'],
       status: json['status'],
       completionType: json['completionType'],
-      previousDate: json['previousDate'] != null ? DateTime.parse(json['previousDate']) : null,
-      userId: json['userId'],
+      previousDate: DateTime.parse(json['previousDate']),
+      userPlant: json['userPlant'],
     );
   }
 
@@ -44,8 +44,8 @@ class Reminder {
       'frequency': frequency,
       'status': status,
       'completionType': completionType,
-      'previousDate': previousDate?.toIso8601String(),
-      'userId': userId,
+      'previousDate': previousDate.toIso8601String(),
+      'userPlant': userPlant,
     };
   }
 }
