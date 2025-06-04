@@ -29,7 +29,7 @@ class UserPlantService {
   final _hardcodedUserId = globalUserId; // ← встав потрібний userId
 
   Future<List<UserPlant>> getUserPlantsById() async {
-    final url = Uri.parse('$_baseUrl/api/UserPlant/user/$_hardcodedUserId');
+    final url = Uri.parse('${_baseUrl}/api/UserPlant/$_hardcodedUserId');
     final headers = <String, String>{
       'Content-Type': 'application/json',
       if (_hardcodedToken != null) 'Authorization': _hardcodedToken!,
