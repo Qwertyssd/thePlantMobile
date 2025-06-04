@@ -11,8 +11,6 @@ class HomeTabPage extends StatelessWidget {
         password: "string"
     );
   }
-
-
   @override
   Widget build(BuildContext context) {
     return Center(
