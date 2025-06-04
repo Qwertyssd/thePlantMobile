@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'dart:io';
 
-import 'package:theplantmobile/Models/Plant.dart';  // Імпорт моделі, припустимо, що в окремому файлі plant.dart
+import 'package:theplantmobile/Models/Plant.dart';
+import 'package:theplantmobile/Models/PlantCareInstruction.dart';
 
 class PlantService {
   final String _baseUrl = 'https://10.0.2.2:8001/api/Plant';
@@ -41,4 +41,30 @@ class PlantService {
       rethrow;
     }
   }
+
+  Future<PlantCareInstruction> getPlantCareInstructions(String plantId, String bearerToken) async {
+    final url = Uri.parse('https://10.0.2.2:8001/api/Plant/$plantId/careinstructions');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $bearerToken',
+    };
+
+    try {
+      final ioClient = createHttpClient();
+      final response = await ioClient.get(url, headers: headers);
+      print('📥 Status code: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonMap = jsonDecode(response.body);
+        return PlantCareInstruction.fromJson(jsonMap);
+      } else {
+        throw Exception('Не вдалося завантажити інструкції по догляду');
+      }
+    } catch (e) {
+      print('❗ Помилка при отриманні інструкцій: $e');
+      rethrow;
+    }
+  }
+
 }

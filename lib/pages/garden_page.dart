@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Models/Plant.dart';
+import 'package:theplantmobile/pages/plant_care_instructions_page.dart';
 
 class GardenPage extends StatefulWidget {
   const GardenPage({super.key});
@@ -39,7 +40,20 @@ class _GardenPageState extends State<GardenPage> {
               return ListTile(
                 title: Text(plant.plantName),
                 subtitle: Text('${plant.category} | ${plant.scientificTitle}'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.info_outline), // або що тобі подобається
+                  onPressed: () {
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PlantCareInstructionsPage(plantId: plant.plantId),
+                      ),
+                    );
+                  },
+                ),
               );
+
             },
           );
         }
