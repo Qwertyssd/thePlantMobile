@@ -3,16 +3,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:theplantmobile/Services/UserPlantsService.dart';
-
+import 'global.dart';
 import 'Services/UserService.dart';
 import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
 import 'pages/notification_page.dart';
-
+import 'pages/reminders_page.dart';
 import 'pages/user_garden_page.dart';
-import 'global.dart';
+
 
 
 void main() async {
@@ -197,7 +197,7 @@ class _HomeNavigatorState extends State<HomeNavigator> {
     HomeTabPage(),
     GardenPage(),
     UserGardenPage(userPlantService: userPlantService),
-    NotificationPage(),
+    RemindersPage(),
     AccountPage(),
   ];
 

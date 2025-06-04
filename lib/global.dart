@@ -20,6 +20,8 @@ void setJwtToken(String jwt) {
     final Map<String, dynamic> payload = json.decode(payloadString);
 
     globalUserId = payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+    print('Payload JWT: $payload');
+
     print("userId из JWT: $globalUserId");
   } catch (e) {
     print('Ошибка при разборе JWT: $e');

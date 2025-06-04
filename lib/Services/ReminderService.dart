@@ -1,12 +1,13 @@
 // lib/Services/ReminderService.dart
 import 'dart:convert';
+import 'package:theplantmobile/global.dart';
 import 'package:http/io_client.dart';
 import 'dart:io';
 import 'package:theplantmobile/Models/Reminder.dart';
 
 class ReminderService {
-  final String baseUrl = "https://10.0.2.2:8001/api";
 
+final _baseUrl = baseUrl;
   HttpClient _createHttpClient() {
     final client = HttpClient()
       ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
@@ -18,7 +19,7 @@ class ReminderService {
   }
 
   Future<List<Reminder>> getUserReminders(String userId, String bearerToken) async {
-    final url = Uri.parse('$baseUrl/Reminders/user/$userId');
+    final url = Uri.parse('${_baseUrl}Reminders/user/$userId');
     final ioClient = createHttpClient();
 
     try {
@@ -46,7 +47,7 @@ class ReminderService {
   }
 
   Future<bool> createReminder(Reminder reminder, String bearerToken) async {
-    final url = Uri.parse('$baseUrl/Reminders');
+    final url = Uri.parse('${_baseUrl}Reminders');
     final ioClient = createHttpClient();
 
     final body = jsonEncode(reminder.toJson());

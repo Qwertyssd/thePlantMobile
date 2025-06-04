@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:theplantmobile/global.dart';
 import 'package:theplantmobile/Models/PlantCareInstruction.dart'; // якщо така модель є
 import 'package:theplantmobile/Services/PlantService.dart'; // або свій сервіс
-String bearer = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjgzYWIxNTRhLTcxOTItNGRkNC1iNzdiLTNiY2QxMDg4Y2I1NCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJleHAiOjE3ODA0NDQ4MTQsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjgwMDEiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4MDAxIn0.SpaQtj-D3KLWJflNUPb1q3NZ0SwKRamCErC_mw99jUA";
+
+
+
+
 class PlantCareInstructionsPage extends StatefulWidget {
   final String plantId;
 
@@ -19,6 +23,7 @@ class _PlantCareInstructionsPageState extends State<PlantCareInstructionsPage> {
     super.initState();
     _careInstructionFuture = PlantService().getPlantCareInstructions(widget.plantId, bearer);
   }
+  final String bearer = globalJwtToken ?? '';
 
   @override
   Widget build(BuildContext context) {

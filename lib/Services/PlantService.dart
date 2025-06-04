@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/io_client.dart';
 import 'dart:io';
 
+import 'package:theplantmobile/global.dart';
 import 'package:theplantmobile/Models/Plant.dart';
 import 'package:theplantmobile/Models/PlantCareInstruction.dart';
 
