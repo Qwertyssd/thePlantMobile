@@ -1,5 +1,5 @@
 class Reminder {
-  final String reminderId;
+  final String? reminderId;
   final String userPlantId;
   final DateTime dateOfReminder;
   final int reminderType;
@@ -37,15 +37,13 @@ class Reminder {
 
   Map<String, dynamic> toJson() {
     return {
-      'reminderId': reminderId,
       'userPlantId': userPlantId,
       'dateOfReminder': dateOfReminder.toIso8601String(),
       'reminderType': reminderType,
       'frequency': frequency,
       'status': status,
       'completionType': completionType,
-      'previousDate': previousDate.toIso8601String(),
-      'userPlant': userPlant,
+      'previousDate': previousDate?.toIso8601String(),
     };
   }
 }

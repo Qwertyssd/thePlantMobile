@@ -10,7 +10,7 @@ class Plant {
   final List<String>? userPlants;
   final List<PlantCareInstruction>? plantCareInstructions;
   final List<PlantOverview>? plantOverviews;
-  final List<PlantImage>? plantImages;
+   List<PlantImage>? plantImages;
 
   Plant({
     required this.plantId,
