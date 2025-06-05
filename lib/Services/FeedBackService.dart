@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
-
+import 'package:theplantmobile/global.dart';
 class FeedbackService {
-  final String _baseUrl = 'https://10.0.2.2:8001/api/Feedbacks/'; // HTTPS, как в редиректе
+  final String _baseUrl = '${baseUrl}Feedbacks/'; // HTTPS, как в редиректе
 
   HttpClient _createHttpClient() {
     final client = HttpClient()
@@ -48,6 +48,5 @@ class FeedbackService {
       print('Error: $e');
       return null;
     }
-
   }
 }
