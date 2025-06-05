@@ -3,7 +3,7 @@ import 'package:theplantmobile/Models/Plant.dart';
 
 
 class UserPlant {
-  final String userPlantId;
+  final String? userPlantId;
   final String userId;
   final String plantId;
   final String? userPlantName;
@@ -11,7 +11,7 @@ class UserPlant {
   final List<Reminder>? reminders;
 
   UserPlant({
-    required this.userPlantId,
+     this.userPlantId,
     required this.userId,
     required this.plantId,
     this.userPlantName,
@@ -30,13 +30,30 @@ class UserPlant {
         : null,
   );
 
-  Map<String, dynamic> toJson() => {
-    'userPlantId': userPlantId,
-    'userId': userId,
-    'plantId': plantId,
-    'userPlantName': userPlantName,
-    'plant': plant?.toJson(),
-    'reminders': reminders?.map((x) => x.toJson()).toList(),
-  };
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{
+      'userId': userId,
+      'plantId': plantId,
+    };
+
+    if (userPlantId != null) {
+      data['userPlantId'] = userPlantId;
+    }
+
+    if (userPlantName != null) {
+      data['userPlantName'] = userPlantName;
+    }
+
+    if (plant != null) {
+      data['plant'] = plant!.toJson();
+    }
+
+    if (reminders != null) {
+      data['reminders'] = reminders!.map((x) => x.toJson()).toList();
+    }
+
+    return data;
+  }
+
 }
 
