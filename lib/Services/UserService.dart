@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
+import 'package:theplantmobile/global.dart';
 
 class UserService {
-  final String _baseUrl = 'https://10.0.2.2:8001/api/User';
+  final String _baseUrl = "https://10.0.2.2:8001/api/User";
 
   HttpClient _createHttpClient() {
     final client = HttpClient()
