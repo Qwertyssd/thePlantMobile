@@ -23,10 +23,10 @@ class UserPlantService {
     return IOClient(_createHttpClient());
   }
 
-  /// Захардкожений токен (можна винести в налаштування)
+
   final _hardcodedToken = globalJwtToken;
-  /// Захардкожений userId (для тестування)
-  final _hardcodedUserId = globalUserId; // ← встав потрібний userId
+
+  final _hardcodedUserId = globalUserId;
 
   Future<List<UserPlant>> getUserPlantsById() async {
     final url = Uri.parse('${_baseUrl}/api/UserPlant/$_hardcodedUserId');
