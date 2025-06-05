@@ -1,19 +1,19 @@
 
 enum OverviewType {
-  typeA,
-  typeB,
-  typeC,
+  Water,
+  Sunlight,
+  Fertilizer,
   unknown,
 }
 
 OverviewType overviewTypeFromString(String type) {
   switch (type) {
-    case 'Water':
-      return OverviewType.typeA;
-    case 'Sunlight':
-      return OverviewType.typeB;
-    case 'Fertilizer':
-      return OverviewType.typeC;
+    case '1':
+      return OverviewType.Water;
+    case '2':
+      return OverviewType.Sunlight;
+    case '3':
+      return OverviewType.Fertilizer;
     default:
       return OverviewType.unknown;
   }
@@ -21,14 +21,14 @@ OverviewType overviewTypeFromString(String type) {
 
 String overviewTypeToString(OverviewType type) {
   switch (type) {
-    case OverviewType.typeA:
-      return 'Water';
-    case OverviewType.typeB:
-      return 'Sunlight';
-    case OverviewType.typeC:
-      return 'Fertilizer';
+    case OverviewType.Water:
+      return '1';
+    case OverviewType.Sunlight:
+      return '2';
+    case OverviewType.Fertilizer:
+      return '3';
     default:
-      return 'Unknown';
+      return '0';
   }
 }
 
@@ -46,13 +46,25 @@ class PlantOverview {
   });
 
   factory PlantOverview.fromJson(Map<String, dynamic> json) {
+    dynamic overviewTypeValue = json['overviewType'];
+    String overviewTypeString;
+
+    if (overviewTypeValue is int) {
+      overviewTypeString = overviewTypeValue.toString();
+    } else if (overviewTypeValue is String) {
+      overviewTypeString = overviewTypeValue;
+    } else {
+      overviewTypeString = 'unknown';
+    }
+
     return PlantOverview(
-      plantOverviewId: json['plantOverviewId'] as String,
+      plantOverviewId: json['plantOverviewId'] as String?,
       plantId: json['plantId'] as String,
-      overviewType: overviewTypeFromString(json['overviewType'] ?? 'unknown'),
+      overviewType: overviewTypeFromString(overviewTypeString),
       description: json['description'] ?? '',
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
