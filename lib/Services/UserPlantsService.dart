@@ -23,44 +23,76 @@ class UserPlantService {
     return IOClient(_createHttpClient());
   }
 
-  /// Захардкожений токен (можна винести в налаштування)
+
   final _hardcodedToken = globalJwtToken;
-  /// Захардкожений userId (для тестування)
-  final _hardcodedUserId = globalUserId; // ← встав потрібний userId
+
+  final _hardcodedUserId = globalUserId;
 
   Future<List<UserPlant>> getUserPlantsById() async {
-    final url = Uri.parse('${_baseUrl}/api/UserPlant/$_hardcodedUserId');
+    final url = Uri.parse('${_baseUrl}UserPlant/$_hardcodedUserId');
     final headers = <String, String>{
       'Content-Type': 'application/json',
       if (_hardcodedToken != null) 'Authorization': _hardcodedToken!,
     };
 
+    print('🔍 Починаємо запит на отримання UserPlants');
+    print('📥 URL: $url');
+    print('📥 Заголовки: $headers');
+    print('🆔 Використовується userId: $_hardcodedUserId');
+    print('🔑 Використовується токен: $_hardcodedToken');
 
     try {
       final ioClient = _createIOClient();
+      print('⚙️ Клієнт створений, виконуємо GET запит...');
       final response = await ioClient.get(url, headers: headers);
 
-      print('📥 Status code: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      print('📥 Статус код відповіді: ${response.statusCode}');
+      print('📥 Тіло відповіді: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
+        print('✅ Дані успішно отримані, кількість записів: ${data.length}');
         return data.map((json) => UserPlant.fromJson(json)).toList();
       }
-      if(response.statusCode == 400)
-        {
-          throw Exception('Не вдалося отримати UserPlants 41');
-        }
-      else {
-        throw Exception('Не вдалося отримати UserPlants');
+      else if (response.statusCode == 400) {
+        print('❌ Помилка 400: Некоректний запит');
+        throw Exception('Не вдалося отримати UserPlants — помилка 400');
       }
-    } catch (e) {
-      print('❗ Помилка при отриманні UserPlants: $e');
-      print('📥 URL: $url');
-      print('📥 Headers: $headers');
-
-
+      else {
+        print('❌ Помилка сервера: статус код ${response.statusCode}');
+        throw Exception(' ${response.statusCode} Не вдалося отримати UserPlants. baseUrl: $baseUrl, userId: $globalUserId, токен: $globalJwtToken');
+      }
+    } catch (e, stacktrace) {
+      print('❗ Виняток при отриманні UserPlants: $e');
+      print('📥 URL запиту: $url');
+      print('📥 Заголовки запиту: $headers');
+      print('📋 Стек трейсу помилки: $stacktrace');
       rethrow;
     }
   }
+
+
+  Future<bool> addUserPlant(UserPlant userPlant) async {
+    final url = Uri.parse('${_baseUrl}UserPlant');
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      if (_hardcodedToken != null) 'Authorization': _hardcodedToken!,
+    };
+
+    final body = jsonEncode(userPlant.toJson());
+
+    try {
+      final ioClient = _createIOClient();
+      final response = await ioClient.post(url, headers: headers, body: body);
+
+      print('📤 Status code: ${response.statusCode}');
+      print('📤 Response body: ${response.body}');
+
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      print('❗ Помилка при додаванні UserPlant: $e');
+      rethrow;
+    }
+  }
+
 }

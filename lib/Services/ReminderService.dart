@@ -46,10 +46,39 @@ final _baseUrl = baseUrl;
     }
   }
 
-  Future<bool> createReminder(Reminder reminder, String bearerToken) async {
-    final url = Uri.parse('${_baseUrl}Reminders');
-    final ioClient = createHttpClient();
+Future<List<Reminder>> getUserPlantReminders(String userPlantId, String bearerToken) async {
+  final url = Uri.parse('${_baseUrl}Reminders/userplant/$userPlantId');
+  final ioClient = createHttpClient();
 
+  try {
+    final response = await ioClient.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $bearerToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('📥 Status code: ${response.statusCode}');
+    print('📥 Response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Reminder.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load reminders: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('❗ Error fetching reminders: $e');
+    rethrow;
+  }
+}
+
+Future<bool> createReminder(Reminder reminder, String bearerToken) async {
+  final url = Uri.parse('${_baseUrl}Reminders');
+  final ioClient = createHttpClient();
+
+  try {
     final body = jsonEncode(reminder.toJson());
 
     final response = await ioClient.post(
@@ -61,6 +90,28 @@ final _baseUrl = baseUrl;
       body: body,
     );
 
-    return response.statusCode == 201 || response.statusCode == 200;
+    print('📤 Request body: $body');
+    print('📥 Status code: ${response.statusCode}');
+    print('📥 Response body: ${response.body}');
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return true;
+    } else {
+      // Якщо сервер відповів помилкою (наприклад 400 або 500)
+      print('❗ Server error: ${response.statusCode}');
+      print('❗ Response body: ${response.body}');
+      throw Exception('Failed to create reminder. Server responded with status code: ${response.statusCode}');
+    }
+  } on SocketException catch (e) {
+    print('❗ Network error: $e');
+    throw Exception('Network error: ${e.message}');
+  } on FormatException catch (e) {
+    print('❗ Invalid response format: $e');
+    throw Exception('Invalid response format: ${e.message}');
+  } catch (e) {
+    print('❗ Unexpected error: $e');
+    throw Exception('Unexpected error: $e');
   }
+}
+
 }
