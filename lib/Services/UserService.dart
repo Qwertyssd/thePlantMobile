@@ -37,6 +37,7 @@ class UserService {
       final ioClient = IOClient(_createHttpClient());
       final response = await ioClient.post(url, headers: headers, body: body);
       print('Body: ${response.body}');
+      setJwtToken(response.body);
       return response;
     } catch (e) {
       print('Ошибка при логине: $e');

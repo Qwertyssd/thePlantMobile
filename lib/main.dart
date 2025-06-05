@@ -32,7 +32,6 @@ Future<void> initAuth() async {
   final username = user.email?.split('@')[0] ?? 'anonymous';
   final password = user.uid;
 
-  // Пытаемся логиниться
   final loginResponse = await UserService().loginUser(
     username: username,
     password: password,
@@ -100,11 +99,13 @@ class _SignInPageState extends State<SignInPage> {
   bool _loading = false;
 
   Future<void> _signInWithGoogle() async {
+    if (!mounted) return;
     setState(() => _loading = true);
+
     try {
-      // 1. Вход через Google
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) {
+        if (!mounted) return;
         setState(() => _loading = false);
         return;
       }
@@ -115,36 +116,27 @@ class _SignInPageState extends State<SignInPage> {
         idToken: googleAuth.idToken,
       );
 
-      // 2. Firebase аутентификация
       final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final user = userCredential.user;
       if (user == null) {
         print('❗ Пользователь не аутентифицирован');
+        if (!mounted) return;
+        setState(() => _loading = false);
         return;
       }
 
-      // 3. Получаем данные
       final username = user.email?.split('@')[0] ?? 'anonymous';
       final password = user.uid;
 
-      // 4. Пробуем логин
-      final loginResponse = await UserService().loginUser(
-        username: username,
-        password: password,
-      );
+      final loginResponse = await UserService().loginUser(username: username, password: password);
 
       if (loginResponse != null && loginResponse.statusCode == 200) {
         setJwtToken(loginResponse.body);
         print('✅ Успешный вход!');
       } else {
-        // 5. Пробуем регистрацию
         final registerResponse = await UserService().registerUser();
         if (registerResponse != null && registerResponse.statusCode == 200) {
-          print('✅ Успешная регистрация! Пробуем логин...');
-          final loginAgain = await UserService().loginUser(
-            username: username,
-            password: password,
-          );
+          final loginAgain = await UserService().loginUser(username: username, password: password);
           if (loginAgain != null && loginAgain.statusCode == 200) {
             setJwtToken(loginAgain.body);
             print('✅ Успешный вход после регистрации!');
@@ -156,12 +148,13 @@ class _SignInPageState extends State<SignInPage> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Помилка входу: $e')));
     } finally {
+      if (!mounted) return;
       setState(() => _loading = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -221,40 +214,5 @@ class _HomeNavigatorState extends State<HomeNavigator> {
         ],
       ),
     );
-  }
-  Future<void> initAuth() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      print('⛔ Нет авторизованного Firebase пользователя');
-      return;
-    }
-
-    final username = user.email?.split('@')[0] ?? 'anonymous';
-    final password = user.uid;
-
-    // Пытаемся логиниться
-    final loginResponse = await UserService().loginUser(
-      username: username,
-      password: password,
-    );
-
-    if (loginResponse != null && loginResponse.statusCode == 200) {
-      setJwtToken(loginResponse.body);
-      print('✅ JWT токен установлен при запуске');
-    } else {
-      print('❗ Backend логин не удался — пробуем регистрацию');
-      final registerResponse = await UserService().registerUser();
-
-      if (registerResponse != null && registerResponse.statusCode == 200) {
-        final loginAgain = await UserService().loginUser(
-          username: username,
-          password: password,
-        );
-        if (loginAgain != null && loginAgain.statusCode == 200) {
-          setJwtToken(loginAgain.body);
-          print('✅ JWT установлен после регистрации при запуске');
-        }
-      }
-    }
   }
 }
