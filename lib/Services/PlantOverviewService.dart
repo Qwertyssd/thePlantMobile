@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/io_client.dart';
 import 'package:theplantmobile/global.dart';
-import 'package:theplantmobile/Models/PlantOverview.dart';
+import 'package:theplantmobile/Models/OverviewType.dart';
 
 class PlantOverviewService {
   final _baseUrl = baseUrl;
@@ -46,9 +46,37 @@ class PlantOverviewService {
     }
   }
 
+  Future<List<PlantOverview>> getPlantOverviewByPlantId(String plantId, String bearerToken) async {
+    final url = Uri.parse('${_baseUrl}PlantOverviews/plant/$plantId');
+    final ioClient = createHttpClient();
+
+    try {
+      final response = await ioClient.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $bearerToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print('📥 Status code: ${response.statusCode}');
+      print('📥 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as List<dynamic>;
+        return data.map((item) => PlantOverview.fromJson(item)).toList();
+      } else {
+        throw Exception('Failed to load plant overview: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❗ Error fetching plant overview: $e');
+      rethrow;
+    }
+  }
+
   /// Створити PlantOverview
   Future<bool> createPlantOverview(PlantOverview plantOverview, String bearerToken) async {
-    final url = Uri.parse('${_baseUrl}PlantOverview');
+    final url = Uri.parse('${_baseUrl}PlantOverviews');
     final ioClient = createHttpClient();
 
     try {
@@ -88,7 +116,7 @@ class PlantOverviewService {
 
   /// Видалити PlantOverview
   Future<bool> deletePlantOverview(String overviewId, String bearerToken) async {
-    final url = Uri.parse('${_baseUrl}PlantOverview/$overviewId');
+    final url = Uri.parse('${_baseUrl}PlantOverviews/$overviewId');
     final ioClient = createHttpClient();
 
     try {
