@@ -1,5 +1,5 @@
 import 'package:theplantmobile/Models/PlantCareInstruction.dart';
-import 'package:theplantmobile/Models/PlantOverview.dart';
+import 'package:theplantmobile/Models/OverviewType.dart';
 import 'package:theplantmobile/Models/PlantImage.dart';
 
 class Plant {
