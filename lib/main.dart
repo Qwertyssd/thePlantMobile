@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Services/UserPlantsService.dart';
 import 'global.dart';
 import 'Services/UserService.dart';
@@ -65,6 +66,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Navigation Example',
       home: const AuthGate(),
+      navigatorObservers: [routeObserver],
     );
   }
 }
@@ -185,7 +187,8 @@ class HomeNavigator extends StatefulWidget {
   @override
   State<HomeNavigator> createState() => _HomeNavigatorState();
 }
-final userPlantService = UserPlantService(baseUrl: 'https://10.0.2.2:8001');
+final userPlantService = UserPlantService(baseUrl: baseUrl!);
+final plantService = PlantService();
 
 class _HomeNavigatorState extends State<HomeNavigator> {
   int _selectedIndex = 0;
@@ -196,7 +199,7 @@ class _HomeNavigatorState extends State<HomeNavigator> {
   static final List<Widget> _pages = <Widget>[
     HomeTabPage(),
     GardenPage(),
-    UserGardenPage(userPlantService: userPlantService),
+    UserGardenPage(userPlantService: userPlantService, plantService: plantService,),
     RemindersPage(),
     AccountPage(),
   ];

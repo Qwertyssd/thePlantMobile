@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'package:flutter/material.dart';
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 String? globalJwtToken;
 String? globalUserId;
 String? baseUrl;
