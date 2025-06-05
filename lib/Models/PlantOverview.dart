@@ -1,3 +1,4 @@
+/*
 class PlantOverview {
   final String plantOverviewId;
   final String plantId;
@@ -28,4 +29,4 @@ class PlantOverview {
     'description': description,
     'plant': plant,
   };
-}
+}*/
