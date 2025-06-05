@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Models/Plant.dart';
+import 'package:theplantmobile/Models/PlantImage.dart';
 import 'package:theplantmobile/pages/plant_care_instructions_page.dart';
-
+import 'package:theplantmobile/global.dart';
 class GardenPage extends StatefulWidget {
   const GardenPage({super.key});
 
@@ -16,9 +17,24 @@ class _GardenPageState extends State<GardenPage> {
   @override
   void initState() {
     super.initState();
-    _plantsFuture = PlantService().getPlants(
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjgzYWIxNTRhLTcxOTItNGRkNC1iNzdiLTNiY2QxMDg4Y2I1NCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IlVzZXIiLCJleHAiOjE3ODA0NDQ4MTQsImlzcyI6Imh0dHBzOi8vbG9jYWxob3N0OjgwMDEiLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo4MDAxIn0.SpaQtj-D3KLWJflNUPb1q3NZ0SwKRamCErC_mw99jUA"
-    );
+    String jwtToken = globalJwtToken ?? "";
+    _plantsFuture = _fetchPlantsWithImages(jwtToken);
+  }
+
+  Future<List<Plant>> _fetchPlantsWithImages(String jwtToken) async {
+    final plants = await PlantService().getPlants(jwtToken);
+
+    for (final plant in plants) {
+      try {
+        final images = await PlantService().getPlantImages(plant.plantId, jwtToken);
+        plant.plantImages = images;
+      } catch (e) {
+        print('⚠️ Не вдалося завантажити фото для рослини ${plant.plantName}: $e');
+        plant.plantImages = [];
+      }
+    }
+
+    return plants;
   }
 
   @override
@@ -80,7 +96,7 @@ class _GardenPageState extends State<GardenPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => PlantCareInstructionsPage(plantId: plant.plantId),
+                            builder: (context) => PlantCareInstructionsPage(plantId: plant.plantId!),
                           ),
                         );
                       },
