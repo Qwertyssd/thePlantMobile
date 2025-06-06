@@ -136,9 +136,9 @@ class _ProfileState extends State<AccountPage> {
                   backgroundImage: photoUrl != null
                       ? NetworkImage(photoUrl)
                       : null,
+                  backgroundColor: Colors.white24,
                   child: photoUrl == null ? const Icon(
                       Icons.person, size: 40, color: Colors.white) : null,
-                  backgroundColor: Colors.white24,
                 ),
                 const SizedBox(width: 20),
                 Text(

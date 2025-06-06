@@ -19,43 +19,8 @@ import 'pages/user_garden_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await initAuth();
+
   runApp(const MyApp());
-}
-
-Future<void> initAuth() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    print('⛔ Нет авторизованного Firebase пользователя');
-    return;
-  }
-
-  final username = user.email?.split('@')[0] ?? 'anonymous';
-  final password = user.uid;
-
-  final loginResponse = await UserService().loginUser(
-    username: username,
-    password: password,
-  );
-
-  if (loginResponse != null && loginResponse.statusCode == 200) {
-    setJwtToken(loginResponse.body);
-    print('✅ JWT токен установлен при запуске');
-  } else {
-    print('❗ Backend логин не удался — пробуем регистрацию');
-    final registerResponse = await UserService().registerUser();
-
-    if (registerResponse != null && registerResponse.statusCode == 200) {
-      final loginAgain = await UserService().loginUser(
-        username: username,
-        password: password,
-      );
-      if (loginAgain != null && loginAgain.statusCode == 200) {
-        setJwtToken(loginAgain.body);
-        print('✅ JWT установлен после регистрации при запуске');
-      }
-    }
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -70,8 +35,94 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AuthGate extends StatelessWidget {
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  bool _loading = true;
+  bool _loggedIn = false;
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user != null) {
+        try {
+          await _handleBackendLogin(user);
+          setState(() {
+            _user = user;
+            _loggedIn = true;
+            _loading = false;
+          });
+        } catch (e) {
+          print('Ошибка логина: $e');
+          setState(() {
+            _user = null;
+            _loggedIn = false;
+            _loading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _user = null;
+          _loggedIn = false;
+          _loading = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _handleBackendLogin(User user) async {
+    final username = user.email?.split('@')[0] ?? 'anonymous';
+    final password = user.uid;
+
+    final loginResponse = await UserService().loginUser(
+      username: username,
+      password: password,
+    );
+
+    if (loginResponse != null && loginResponse.statusCode == 200) {
+      setJwtToken(loginResponse.body);
+    } else {
+      final registerResponse = await UserService().registerUser();
+      if (registerResponse != null && registerResponse.statusCode == 200) {
+        final loginAgain = await UserService().loginUser(
+          username: username,
+          password: password,
+        );
+        if (loginAgain != null && loginAgain.statusCode == 200) {
+          setJwtToken(loginAgain.body);
+        } else {
+          throw Exception('Ошибка авторизации после регистрации');
+        }
+      } else {
+        throw Exception('Регистрация не удалась');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_loggedIn && _user != null) {
+      return const HomeNavigator();
+    } else {
+      return const SignInPage();
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +139,7 @@ class AuthGate extends StatelessWidget {
       },
     );
   }
-}
+
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
