@@ -18,6 +18,17 @@ class UserPlant {
     this.plant,
     this.reminders,
   });
+
+  factory UserPlant.fromJson(Map<String, dynamic> json) => UserPlant(
+    userPlantId: json['userPlantId'],
+    userId: json['userId'],
+    plantId: json['plantId'],
+    userPlantName: json['userPlantName'],
+    plant: json['plant'] != null ? Plant.fromJson(json['plant']) : null,
+    reminders: json['reminders'] != null
+        ? List<Reminder>.from(json['reminders'].map((x) => Reminder.fromJson(x)))
+        : null,
+  );
   UserPlant copyWith({
     String? userPlantId,
     String? userId,
@@ -33,42 +44,30 @@ class UserPlant {
       plant: plant ?? this.plant,
     );
   }
-  factory UserPlant.fromJson(Map<String, dynamic> json) => UserPlant(
-    userPlantId: json['userPlantId'],
-    userId: json['userId'],
-    plantId: json['plantId'],
-    userPlantName: json['userPlantName'],
-    plant: json['plant'] != null ? Plant.fromJson(json['plant']) : null,
-    reminders: json['reminders'] != null
-        ? List<Reminder>.from(json['reminders'].map((x) => Reminder.fromJson(x)))
-        : null,
-  );
-
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{
       'userId': userId,
       'plantId': plantId,
     };
 
-
+    if (userPlantId != null) {
       data['userPlantId'] = userPlantId;
+    }
 
-
-
+    if (userPlantName != null) {
       data['userPlantName'] = userPlantName;
+    }
 
-    data['user']=null;
+    if (plant != null) {
+      data['plant'] = plant!.toJson();
+    }
 
-      data['plant'] = null ;
+    if (reminders != null) {
+      data['reminders'] = reminders!.map((x) => x.toJson()).toList();
+    }
 
-
-
-      data['reminders'] = null;
-
-    print (data);
     return data;
   }
-
 
 }
 
