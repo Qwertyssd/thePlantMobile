@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../Services/UserService.dart';
 import '../auth/auth.dart';
 import '../global.dart';
 import '../Services/FeedbackService.dart';
-import 'package:theplantmobile/global.dart';
+
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
 
@@ -114,7 +115,9 @@ class _ProfileState extends State<AccountPage> {
     await FirebaseAuth.instance.signOut();
   }
 
-  @override
+
+
+
   Widget build(BuildContext context) {
     final userName = _user?.displayName ?? _user?.email?.split('@')[0] ??
         'User';
@@ -174,7 +177,9 @@ class _ProfileState extends State<AccountPage> {
                       _buildLeftAlignedTextButton(
                           Icons.logout, 'Log out', _signOut),
                     _buildLeftAlignedTextButton(
+
                         Icons.settings, 'Settings', () {}),
+
                     _buildLeftAlignedTextButton(
                         Icons.info, 'About this app', () {}),
                     _buildLeftAlignedTextButton(Icons.feedback, 'Leave your feedback', () => _showFeedbackDialog(context))
