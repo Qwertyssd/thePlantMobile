@@ -65,6 +65,7 @@ class RemindersPageState extends State<RemindersPage> with RouteAware {
 
     return list;
   }
+
   Future<void> _deleteReminder(Reminder reminder) async {
     try {
       bool success = await _reminderService.deleteReminder(reminder.reminderId!, globalJwtToken!);
@@ -82,8 +83,9 @@ class RemindersPageState extends State<RemindersPage> with RouteAware {
       );
     }
   }
+
   String _formatDate(DateTime date) {
-    return "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}";
+    return "${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year} ${date.hour}:${date.minute}";
   }
 
   String getReminderTypeLabel(int type) {
@@ -130,27 +132,6 @@ class RemindersPageState extends State<RemindersPage> with RouteAware {
     }
   }
 
-  // Закоментований метод видалення, розкоментуйте і додайте логіку у ReminderService
-  /*
-  Future<void> _deleteReminder(Reminder reminder) async {
-    try {
-      bool success = await _reminderService.deleteReminder(reminder.reminderId!, globalJwtToken!);
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('🗑️ Reminder deleted')),
-        );
-        setState(() {
-          _plantsWithRemindersFuture = _loadData();
-        });
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Error deleting reminder: $e')),
-      );
-    }
-  }
-  */
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,13 +156,15 @@ class RemindersPageState extends State<RemindersPage> with RouteAware {
               itemBuilder: (context, index) {
                 final item = plantsWithReminders[index];
                 final plantName = item.plant.userPlantName?.trim();
-                final displayPlantName = (plantName != null && plantName.isNotEmpty)
+                final displayPlantName =
+                (plantName != null && plantName.isNotEmpty)
                     ? plantName
                     : 'Unknown Plant';
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  margin: const EdgeInsets.symmetric(vertical: 9),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                   elevation: 2,
                   child: ExpansionTile(
                     title: Text(
@@ -195,126 +178,145 @@ class RemindersPageState extends State<RemindersPage> with RouteAware {
                         child: Text('⏰ No reminders for this plant.'),
                       )
                     ]
-                        : List<Widget>.generate(item.reminders.length * 2 - 1, (i) {
-                      if (i.isOdd) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Divider(
-                            color: Colors.grey,
-                            thickness: 0.5,
-                          ),
-                        );
-                      }
-                      final r = item.reminders[i ~/ 2];
-                      final reminderType = getReminderTypeLabel(r.reminderType);
-                      final frequency = r.frequency ?? 'Unknown';
-                      final status = getReminderStatusLabel(r.status);
-                      final completionType = r.completionType ?? 'Unknown';
-                      final formattedReminderDate = (r.dateOfReminder != null)
-                          ? _formatDate(r.dateOfReminder!)
-                          : 'Unknown';
-                      final formattedPreviousDate = (r.previousDate != null)
-                          ? _formatDate(r.previousDate!)
-                          : 'Unknown';
+                        : List<Widget>.generate(
+                      item.reminders.length * 2 - 1,
+                          (i) {
+                        if (i.isOdd) {
+                          return const Padding(
+                            padding:
+                            EdgeInsets.symmetric(horizontal: 16),
+                            child: Divider(
+                              color: Colors.grey,
+                              thickness: 0.5,
+                            ),
+                          );
+                        }
+                        final r = item.reminders[i ~/ 2];
+                        final reminderType =
+                        getReminderTypeLabel(r.reminderType);
+                        final frequency =
+                            r.frequency ?? 'Unknown';
+                        final status =
+                        getReminderStatusLabel(r.status);
+                        final completionType =
+                            r.completionType ?? 'Unknown';
+                        final formattedReminderDate =
+                        (r.dateOfReminder != null)
+                            ? _formatDate(r.dateOfReminder!)
+                            : 'Unknown';
+                        final formattedPreviousDate =
+                        (r.previousDate != null)
+                            ? _formatDate(r.previousDate!)
+                            : 'Unknown';
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(12),
-                            title: Text(
-                              reminderType,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(12),
+                              title: Text(
+                                reminderType,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(height: 7),
+                                  _buildRow(
+                                    icon: Icons.calendar_today,
+                                    text:
+                                    'Next date: $formattedReminderDate',
+                                  ),
+                                  _buildRow(
+                                    icon: Icons.history,
+                                    text: 'Frequency: $frequency',
+                                  ),
+                                  _buildRow(
+                                    icon: Icons.info,
+                                    text: 'Status: $status',
+                                  ),
+                                  _buildRow(
+                                    icon: Icons.event_repeat,
+                                    text:
+                                    'Completion type: $completionType',
+                                  ),
+                                  _buildRow(
+                                    icon: Icons.access_time,
+                                    text:
+                                    'Last date: $formattedPreviousDate',
+                                  ),
+                                ],
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.check_circle,
+                                      color: (r.status == 0 ||
+                                          r.status == 2)
+                                          ? Colors.green[700]
+                                          : Colors.grey,
+                                    ),
+                                    tooltip: 'Mark as Done',
+                                    onPressed: (r.status == 0 ||
+                                        r.status == 2)
+                                        ? () =>
+                                        _markReminderCompleted(r)
+                                        : null,
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red[400],
+                                    ),
+                                    tooltip: 'Delete reminder',
+                                    onPressed: () {
+                                      _deleteReminder(r);
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 6),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 6),
-                                    Text('Next date: $formattedReminderDate'),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.history, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 6),
-                                    Text('Frequency: $frequency'),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.info, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 6),
-                                    Text('Status: $status'),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.event_repeat, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 6),
-                                    Text('Completion type: $completionType'),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                                    const SizedBox(width: 6),
-                                    Text('Previous date: $formattedPreviousDate'),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Minimalist Done button (check icon)
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.check_circle,
-                                    color: (r.status == 0 || r.status == 2)
-                                        ? Colors.green[700]
-                                        : Colors.grey,
-                                  ),
-                                  tooltip: 'Mark as Done',
-                                  onPressed: (r.status == 0 || r.status == 2)
-                                      ? () => _markReminderCompleted(r)
-                                      : null,
-                                ),
-
-                                // Minimalist Delete button (trash icon)
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red[400],
-                                  ),
-                                  tooltip: 'Delete reminder',
-                                  onPressed: () {
-
-                                     _deleteReminder(r);
-                                  },
-                                ),
-                              ],
-                            ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      },
+                    ),
                   ),
                 );
               },
             );
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildRow({required IconData icon, required String text}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: Colors.grey),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              softWrap: true,
+            ),
+          ),
+        ],
       ),
     );
   }

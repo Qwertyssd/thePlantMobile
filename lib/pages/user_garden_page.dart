@@ -6,6 +6,7 @@ import 'package:theplantmobile/Models/Plant.dart';
 import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/pages/plant_care_instructions_page.dart';
 import 'package:theplantmobile/pages/user_plant_details_page.dart';
+import 'package:theplantmobile/Models/PlantImage.dart';
 
 class UserGardenPage extends StatefulWidget {
   final PlantService plantService;
@@ -34,8 +35,38 @@ class _UserGardenPageState extends State<UserGardenPage> {
 
   void _refreshUserPlants() {
     setState(() {
-      _futureUserPlants = widget.userPlantService.getUserPlantsById();
+      _futureUserPlants = _loadUserPlantsWithImages();
     });
+  }
+
+  Future<List<UserPlant>> _loadUserPlantsWithImages() async {
+    final userPlants = await widget.userPlantService.getUserPlantsById();
+
+    final updatedUserPlants = <UserPlant>[];
+    for (final userPlant in userPlants) {
+      Plant? plant = userPlant.plant;
+      if (plant == null && userPlant.plantId != null) {
+        plant = await widget.plantService.getPlantById(
+          userPlant.plantId!,
+          globalJwtToken!,
+        );
+      }
+
+      List<PlantImage>? images;
+      if (plant != null) {
+        images = await widget.plantService.getPlantImages(
+          userPlant.plantId!,
+          globalJwtToken!,
+        );
+        plant = plant.copyWith(plantImages: images);
+      }
+
+      updatedUserPlants.add(
+        userPlant.copyWith(plant: plant),
+      );
+    }
+
+    return updatedUserPlants;
   }
 
   Future<void> _showAddUserPlantDialog() async {
@@ -43,7 +74,6 @@ class _UserGardenPageState extends State<UserGardenPage> {
     String? userPlantName;
     Plant? selectedPlant;
 
-    // Завантажуємо список рослин, якщо ще не завантажено
     List<Plant> plants;
     try {
       plants = await _futurePlants;
@@ -77,16 +107,12 @@ class _UserGardenPageState extends State<UserGardenPage> {
                       selectedPlant = plant;
                     });
                   },
-                  validator: (value) =>
-                  value == null ? 'Виберіть рослину' : null,
+                  validator: (value) => value == null ? 'Виберіть рослину' : null,
                 ),
                 TextFormField(
-                  decoration:
-                  const InputDecoration(labelText: 'Назва рослини'),
+                  decoration: const InputDecoration(labelText: 'Назва рослини'),
                   validator: (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Введіть назву рослини'
-                      : null,
+                  (value == null || value.isEmpty) ? 'Введіть назву рослини' : null,
                   onSaved: (value) => userPlantName = value,
                 ),
               ],
@@ -95,7 +121,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Скасувати')),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
@@ -103,7 +129,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
                   Navigator.pop(context, true);
                 }
               },
-              child: const Text('Додати'),
+              child: const Text('Add'),
             ),
           ],
         ),
@@ -119,8 +145,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
       );
 
       try {
-        final success =
-        await widget.userPlantService.addUserPlant(newUserPlant);
+        final success = await widget.userPlantService.addUserPlant(newUserPlant);
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Рослину додано успішно')),
@@ -168,8 +193,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
 
           return GridView.builder(
             padding: const EdgeInsets.all(12),
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.8,
               crossAxisSpacing: 12,
@@ -186,9 +210,8 @@ class _UserGardenPageState extends State<UserGardenPage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => UserPlantDetailsPage(
-                            plantId: userPlant.plantId!,
-                          userPlantId: userPlant.userPlantId! ,
-
+                          plantId: userPlant.plantId!,
+                          userPlantId: userPlant.userPlantId!,
                         ),
                       ),
                     );
@@ -199,35 +222,119 @@ class _UserGardenPageState extends State<UserGardenPage> {
                   }
                 },
                 child: Card(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   elevation: 4,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(
-                        child: (userPlant.plant?.plantImages != null &&
-                            userPlant.plant!.plantImages!.isNotEmpty)
-                            ? ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(15)),
-                          child: Image.network(
-                            userPlant.plant!.plantImages!.first.url,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                            : Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(15)),
-                          ),
-                          child: const Icon(Icons.local_florist,
-                              size: 80, color: Colors.white),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
+                              child: (userPlant.plant?.plantImages != null &&
+                                  userPlant.plant!.plantImages!.isNotEmpty)
+                                  ? Image.network(
+                                userPlant.plant!.plantImages!.first.url,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              )
+                                  : Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                                ),
+                                child: const Icon(Icons.local_florist,
+                                    size: 80, color: Colors.white),
+                              ),
+                            ),
+                            Positioned(
+                              top: 4,
+                              right: 0,
+                              child: PopupMenuButton<String>(
+                                  onSelected: (value) async {
+                                    if (value == 'delete') {
+                                      print(userPlant.userPlantId);
+                                      if (userPlant.userPlantId == null) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Ідентифікатор рослини відсутній')),
+                                        );
+                                        return;
+                                      }
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('Видалити рослину?'),
+                                          content: const Text('Ви впевнені, що хочете видалити цю рослину?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, false),
+                                              child: const Text('Ні'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () => Navigator.pop(context, true),
+                                              child: const Text('Так'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (confirm == true) {
+                                        try {
+                                          final success = await widget.userPlantService.deleteUserPlant(userPlant.userPlantId!);
+                                          if (success) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Рослину успішно видалено')),
+                                            );
+                                            _refreshUserPlants();
+                                          } else {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Не вдалося видалити рослину')),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Помилка видалення: $e')),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+
+                                  itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text('Edit name'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete plant'),
+                                  ),
+                                ],
+                                icon: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.withOpacity(0.4), // білий напівпрозорий фон
+                                    borderRadius: BorderRadius.circular(100), // круглий фон
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: const EdgeInsets.all(3),
+                                  child: const Icon(Icons.more_vert, color: Colors.white),
+                                ),
+
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
                         child: Text(
                           userPlant.userPlantName ??
                               userPlant.plant?.plantName ??
@@ -241,6 +348,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
                   ),
                 ),
               );
+
             },
           );
         },
