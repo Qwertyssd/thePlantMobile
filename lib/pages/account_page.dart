@@ -24,16 +24,16 @@ class _ProfileState extends State<AccountPage> {
       context: contextMounted,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Залишити відгук'),
+          title: const Text('Leave feedback'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: 'Тема'),
+                decoration: const InputDecoration(labelText: 'Theme'),
                 onChanged: (value) => theme = value,
               ),
               TextField(
-                decoration: const InputDecoration(labelText: 'Повідомлення'),
+                decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 4,
                 onChanged: (value) => text = value,
               ),
@@ -42,7 +42,7 @@ class _ProfileState extends State<AccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Скасувати'),
+              child: const Text('Cancel'),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -61,13 +61,13 @@ class _ProfileState extends State<AccountPage> {
                 );
 
                 final message = (response != null && response.statusCode == 200)
-                    ? '✅ Відгук надіслано'
-                    : '❗ Помилка надсилання';
+                    ? '✅ Feedback has already sent'
+                    : '❗ Error';
 
                 // Используем contextMounted — внешний контекст
                 ScaffoldMessenger.of(contextMounted).showSnackBar(SnackBar(content: Text(message)));
               },
-              child: const Text('Надіслати'),
+              child: const Text('Send'),
             ),
           ],
         );
@@ -120,7 +120,7 @@ class _ProfileState extends State<AccountPage> {
 
   Widget build(BuildContext context) {
     final userName = _user?.displayName ?? _user?.email?.split('@')[0] ??
-        'Користувач';
+        'User';
     final photoUrl = _user?.photoURL;
 
     return Scaffold(
@@ -130,7 +130,7 @@ class _ProfileState extends State<AccountPage> {
         children: [
           // Верхний блок с аватаркой
           Container(
-            color: Colors.green,
+            color: Colors.green[700],
             padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
             child: Row(
               children: [
@@ -167,21 +167,22 @@ class _ProfileState extends State<AccountPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildLeftAlignedTextButton(
-                        Icons.switch_account, 'Змінити аккаунт', _switchAcc),
+                        Icons.switch_account, 'Change account', _switchAcc),
                     _buildLeftAlignedTextButton(
-                        Icons.lock, 'Принт JWT і User ID', () {
+                        Icons.lock, 'Print JWT і User ID', () {
                       print('🔐 JWT: $globalJwtToken');
                       print('👤 User ID: $globalUserId');
                     }),
                     if (_user != null)
                       _buildLeftAlignedTextButton(
-                          Icons.logout, 'Вийти', _signOut),
+                          Icons.logout, 'Log out', _signOut),
                     _buildLeftAlignedTextButton(
-                        Icons.settings, 'Настройки (заглушка)',  (){
-                    }),
+
+                        Icons.settings, 'Settings', () {}),
+
                     _buildLeftAlignedTextButton(
-                        Icons.info, 'О приложении (заглушка)', () {}),
-                    _buildLeftAlignedTextButton(Icons.feedback, 'Залишити відгук', () => _showFeedbackDialog(context))
+                        Icons.info, 'About this app', () {}),
+                    _buildLeftAlignedTextButton(Icons.feedback, 'Leave your feedback', () => _showFeedbackDialog(context))
 
                   ],
                 ),

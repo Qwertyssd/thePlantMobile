@@ -176,14 +176,15 @@ Future<bool> updateReminderStatus(Reminder reminder, int newStatus, String beare
 
 Future<bool> checkAndUpdateReminderStatus(Reminder reminder, String bearerToken) async {
   final now = DateTime.now();
+  final d = Duration(minutes: 5);
+  final future = now.add(d);
   final ioClient = createHttpClient();
   final url = Uri.parse('${_baseUrl}Reminders');
 
   try {
-    if (reminder.dateOfReminder.isBefore(now) ||
-        reminder.dateOfReminder.isAtSameMomentAs(now)) {
+    if (reminder.dateOfReminder.isBefore(future)) {
       if (reminder.status != 2) {
-        // Створюємо оновлений Reminder з новими полями:
+
 
 
         final updatedReminder = Reminder(

@@ -79,7 +79,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
       plants = await _futurePlants;
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Помилка завантаження рослин: $e')),
+        SnackBar(content: Text('Unable to load plants: $e')),
       );
       return;
     }
@@ -88,14 +88,14 @@ class _UserGardenPageState extends State<UserGardenPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Додати рослину'),
+          title: const Text('Add plant'),
           content: Form(
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<Plant>(
-                  decoration: const InputDecoration(labelText: 'Оберіть рослину'),
+                  decoration: const InputDecoration(labelText: 'Choose plant'),
                   items: plants.map((plant) {
                     return DropdownMenuItem(
                       value: plant,
@@ -107,12 +107,12 @@ class _UserGardenPageState extends State<UserGardenPage> {
                       selectedPlant = plant;
                     });
                   },
-                  validator: (value) => value == null ? 'Виберіть рослину' : null,
+                  validator: (value) => value == null ? 'Choose plant' : null,
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Назва рослини'),
+                  decoration: const InputDecoration(labelText: 'Plaant name'),
                   validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Введіть назву рослини' : null,
+                  (value == null || value.isEmpty) ? 'Type plant name' : null,
                   onSaved: (value) => userPlantName = value,
                 ),
               ],
@@ -148,17 +148,17 @@ class _UserGardenPageState extends State<UserGardenPage> {
         final success = await widget.userPlantService.addUserPlant(newUserPlant);
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Рослину додано успішно')),
+            const SnackBar(content: Text('Plant was added sucessfully')),
           );
           _refreshUserPlants();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Не вдалося додати рослину')),
+            const SnackBar(content: Text('Unable to add plant')),
           );
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Помилка: $e')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
@@ -168,13 +168,13 @@ class _UserGardenPageState extends State<UserGardenPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Мій сад'),
+        title: const Text('My garden'),
         backgroundColor: Colors.green[700],
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _showAddUserPlantDialog,
-            tooltip: 'Додати рослину',
+            tooltip: 'Add plant',
           ),
         ],
       ),
@@ -184,9 +184,9 @@ class _UserGardenPageState extends State<UserGardenPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Помилка: ${snapshot.error}'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('У вас поки що немає рослин у саду'));
+            return const Center(child: Text('You don`t have any plants in the garden'));
           }
 
           final userPlants = snapshot.data!;
@@ -217,7 +217,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ідентифікатор рослини відсутній')),
+                      const SnackBar(content: Text('Plant identifyer is missing')),
                     );
                   }
                 },
@@ -257,23 +257,23 @@ class _UserGardenPageState extends State<UserGardenPage> {
                                       print(userPlant.userPlantId);
                                       if (userPlant.userPlantId == null) {
                                         ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Ідентифікатор рослини відсутній')),
+                                          const SnackBar(content: Text('Plant identifyer is missing')),
                                         );
                                         return;
                                       }
                                       final confirm = await showDialog<bool>(
                                         context: context,
                                         builder: (context) => AlertDialog(
-                                          title: const Text('Видалити рослину?'),
-                                          content: const Text('Ви впевнені, що хочете видалити цю рослину?'),
+                                          title: const Text('Delete the plant?'),
+                                          content: const Text('Confirm deleting the plant?'),
                                           actions: [
                                             TextButton(
                                               onPressed: () => Navigator.pop(context, false),
-                                              child: const Text('Ні'),
+                                              child: const Text('No'),
                                             ),
                                             ElevatedButton(
                                               onPressed: () => Navigator.pop(context, true),
-                                              child: const Text('Так'),
+                                              child: const Text('Yes'),
                                             ),
                                           ],
                                         ),
@@ -284,28 +284,28 @@ class _UserGardenPageState extends State<UserGardenPage> {
                                           final success = await widget.userPlantService.deleteUserPlant(userPlant.userPlantId!);
                                           if (success) {
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Рослину успішно видалено')),
+                                              const SnackBar(content: Text('Plant was deleted successfully')),
                                             );
                                             _refreshUserPlants();
                                           } else {
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text('Не вдалося видалити рослину')),
+                                              const SnackBar(content: Text('Unable to delete the plant')),
                                             );
                                           }
                                         } catch (e) {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('Помилка видалення: $e')),
+                                            SnackBar(content: Text('Delete error: $e')),
                                           );
                                         }
                                       }
                                     }
+
+
+
                                   },
 
                                   itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('Edit name'),
-                                  ),
+
                                   const PopupMenuItem(
                                     value: 'delete',
                                     child: Text('Delete plant'),
@@ -338,7 +338,7 @@ class _UserGardenPageState extends State<UserGardenPage> {
                         child: Text(
                           userPlant.userPlantName ??
                               userPlant.plant?.plantName ??
-                              'Без назви',
+                              'No name',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               fontSize: 16, fontWeight: FontWeight.bold),

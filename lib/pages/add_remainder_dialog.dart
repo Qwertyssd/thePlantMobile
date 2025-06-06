@@ -129,7 +129,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Додати нагадування'),
+      title: const Text('Add reminder'),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -138,7 +138,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: 'User Plant ID'),
-                validator: (value) => value == null || value.isEmpty ? 'Введіть User Plant ID' : null,
+                validator: (value) => value == null || value.isEmpty ? 'Insert User Plant ID' : null,
                 onSaved: (value) => _userPlant = value ?? '',
               ),
               TextFormField(
@@ -188,7 +188,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Text('Дата нагадування: '),
+                  const Text('REminder Date: '),
                   TextButton(
                     onPressed: () => _selectDate(context, true),
                     child: Text('${_dateOfReminder.toLocal()}'.split(' ')[0]),
@@ -197,7 +197,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
               ),
               Row(
                 children: [
-                  const Text('Попередня дата: '),
+                  const Text('Previous Date: '),
                   TextButton(
                     onPressed: () => _selectDate(context, false),
                     child: Text('${_previousDate.toLocal()}'.split(' ')[0]),
@@ -210,11 +210,11 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
       ),
       actions: [
         TextButton(
-          child: const Text('Скасувати'),
+          child: const Text('Cancel'),
           onPressed: () => Navigator.of(context).pop(),
         ),
         ElevatedButton(
-          child: const Text('Додати'),
+          child: const Text('Add'),
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
               _formKey.currentState?.save();

@@ -1,48 +1,163 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:theplantmobile/Services/NotificationService.dart';
 import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Services/UserPlantsService.dart';
 import 'global.dart';
 import 'Services/UserService.dart';
 import 'firebase_options.dart';
-import 'pages/home_page.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
+import 'package:flutter/services.dart';
 import 'pages/reminders_page.dart';
 import 'pages/user_garden_page.dart';
 
 
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().initNotification();
-
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.green,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.green,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   runApp(const MyApp());
 }
 
-
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Navigation Example',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: Colors.green[300],
+          labelTextStyle: MaterialStateProperty.all(
+            const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
       home: const AuthGate(),
       navigatorObservers: [routeObserver],
     );
   }
 }
 
-class AuthGate extends StatelessWidget {
+
+class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  bool _loading = true;
+  bool _loggedIn = false;
+  User? _user;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.green, // status bar color
+        statusBarIconBrightness: Brightness.light, // status bar icon color
+        systemNavigationBarColor: Colors.green, // navigation bar color
+        systemNavigationBarIconBrightness: Brightness.light, // navigation bar icon color
+      ),
+    );
+  }
+
+  Future<void> _checkAuth() async {
+    FirebaseAuth.instance.authStateChanges().listen((user) async {
+      if (user != null) {
+        try {
+          await _handleBackendLogin(user);
+          setState(() {
+            _user = user;
+            _loggedIn = true;
+            _loading = false;
+          });
+        } catch (e) {
+          print('Ошибка логина: $e');
+          setState(() {
+            _user = null;
+            _loggedIn = false;
+            _loading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _user = null;
+          _loggedIn = false;
+          _loading = false;
+        });
+      }
+    });
+  }
+
+  Future<void> _handleBackendLogin(User user) async {
+    final username = user.email?.split('@')[0] ?? 'anonymous';
+    final password = user.uid;
+
+    final loginResponse = await UserService().loginUser(
+      username: username,
+      password: password,
+    );
+
+    if (loginResponse != null && loginResponse.statusCode == 200) {
+      setJwtToken(loginResponse.body);
+    } else {
+      final registerResponse = await UserService().registerUser();
+      if (registerResponse != null && registerResponse.statusCode == 200) {
+        final loginAgain = await UserService().loginUser(
+          username: username,
+          password: password,
+        );
+        if (loginAgain != null && loginAgain.statusCode == 200) {
+          setJwtToken(loginAgain.body);
+        } else {
+          throw Exception('Ошибка авторизации после регистрации');
+        }
+      } else {
+        throw Exception('Регистрация не удалась');
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_loggedIn && _user != null) {
+      return const HomeNavigator();
+    } else {
+      return const SignInPage();
+    }
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -50,65 +165,16 @@ class AuthGate extends StatelessWidget {
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Center(child: CircularProgressIndicator());
         }
-
-        final user = snapshot.data;
-
-        if (user != null) {
-
-          return FutureBuilder<bool>(
-            future: _handleBackendLogin(user),
-            builder: (context, backendSnapshot) {
-              if (backendSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(body: Center(child: CircularProgressIndicator()));
-              }
-              if (backendSnapshot.hasError || !(backendSnapshot.data ?? false)) {
-                return const SignInPage();
-              }
-              return const HomeNavigator();
-            },
-          );
-        } else {
-          return const SignInPage();
+        if (snapshot.hasData) {
+          return const HomeNavigator();
         }
+        return const SignInPage();
       },
     );
   }
 
-  static Future<bool> _handleBackendLogin(User user) async {
-    try {
-      final username = user.email?.split('@')[0] ?? 'anonymous';
-      final password = user.uid;
-
-      final loginResponse = await UserService().loginUser(
-        username: username,
-        password: password,
-      );
-
-      if (loginResponse != null && loginResponse.statusCode == 200) {
-        setJwtToken(loginResponse.body);
-        return true;
-      } else {
-        final registerResponse = await UserService().registerUser();
-        if (registerResponse != null && registerResponse.statusCode == 200) {
-          final loginAgain = await UserService().loginUser(
-            username: username,
-            password: password,
-          );
-          if (loginAgain != null && loginAgain.statusCode == 200) {
-            setJwtToken(loginAgain.body);
-            return true;
-          }
-        }
-      }
-    } catch (e) {
-      print('Ошибка backend-логина: $e');
-    }
-
-    return false;
-  }
-}
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -154,22 +220,14 @@ class _SignInPageState extends State<SignInPage> {
 
       if (loginResponse != null && loginResponse.statusCode == 200) {
         setJwtToken(loginResponse.body);
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeNavigator()),
-        );
-        return;
+        print('✅ Успешный вход!');
       } else {
         final registerResponse = await UserService().registerUser();
         if (registerResponse != null && registerResponse.statusCode == 200) {
           final loginAgain = await UserService().loginUser(username: username, password: password);
           if (loginAgain != null && loginAgain.statusCode == 200) {
             setJwtToken(loginAgain.body);
-            if (!mounted) return;
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const HomeNavigator()),
-            );
-            return;
+            print('✅ Успешный вход после регистрации!');
           } else {
             print('❗ Не удалось войти после регистрации');
           }
@@ -179,9 +237,7 @@ class _SignInPageState extends State<SignInPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Помилка входу: $e')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Помилка входу: $e')));
     } finally {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -216,8 +272,11 @@ final plantService = PlantService();
 class _HomeNavigatorState extends State<HomeNavigator> {
   int _selectedIndex = 0;
 
+
+
+
   static final List<Widget> _pages = <Widget>[
-    HomeTabPage(),
+
     GardenPage(),
     UserGardenPage(userPlantService: userPlantService, plantService: plantService,),
     RemindersPage(),
@@ -237,9 +296,9 @@ class _HomeNavigatorState extends State<HomeNavigator> {
         onDestinationSelected: _onItemTapped,
         destinations: const <NavigationDestination>[
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Garden'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'UserGarden'),
-          NavigationDestination(icon: Icon(Icons.explore), label: 'Notification'),
+
+          NavigationDestination(icon: Icon(FontAwesomeIcons.leaf,  size: 24), label: 'UserGarden'),
+          NavigationDestination(icon: Icon(Icons.notifications), label: 'Notification'),
           NavigationDestination(icon: Icon(Icons.person), label: 'Account'),
         ],
       ),

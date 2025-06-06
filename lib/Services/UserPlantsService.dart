@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 import 'dart:io';
-
 import 'package:theplantmobile/global.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:theplantmobile/Models/UserPlant.dart';
 
@@ -114,5 +114,39 @@ class UserPlantService {
       rethrow;
     }
   }
+
+  Future<bool> updateUserPlant(UserPlant userPlant) async {
+    final url = Uri.parse('${_baseUrl}UserPlant');
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      if (_hardcodedToken != null) 'Authorization': _hardcodedToken!,
+    };
+
+    final body = jsonEncode(userPlant.toJson());
+
+    try {
+      final ioClient = _createIOClient();
+      final response = await ioClient.put(
+        url,
+        headers: {
+          'Authorization': 'Bearer $globalJwtToken',
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      );
+
+      print('📤 PATCH Status code: ${response.statusCode}');
+      print('📤 PATCH Response body: ${response.body}');
+
+      return response.statusCode == 200;
+    } catch (e, stacktrace) {
+      print('❗ Помилка при оновленні UserPlant: $e');
+      print('📥 URL запиту: $url');
+      print('📥 Заголовки запиту: $headers');
+      print('📋 Стек трейсу помилки: $stacktrace');
+      rethrow;
+    }
+  }
+
 
 }
