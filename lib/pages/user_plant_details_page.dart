@@ -9,8 +9,8 @@ import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Services/ReminderService.dart';
 
 class UserPlantDetailsPage extends StatefulWidget {
-  final String plantId;        // ID самої рослини (Plant)
-  final String userPlantId;    // ID екземпляра користувача (UserPlant)
+  final String plantId;
+  final String userPlantId;
 
   const UserPlantDetailsPage({
     super.key,
@@ -21,7 +21,6 @@ class UserPlantDetailsPage extends StatefulWidget {
   @override
   State<UserPlantDetailsPage> createState() => _UserPlantDetailsPageState();
 }
-
 
 class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
   late Future<Plant> _plantFuture;
@@ -34,13 +33,14 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
   void initState() {
     super.initState();
     _plantFuture = PlantService().getPlantById(widget.plantId, bearer);
-    _careInstructionFuture = PlantService().getPlantCareInstructions(widget.plantId, bearer);
+    _careInstructionFuture =
+        PlantService().getPlantCareInstructions(widget.plantId, bearer);
     _plantImagesFuture = PlantService().getPlantImages(widget.plantId, bearer);
   }
 
   Future<void> _showReminderDialog(int type) async {
     DateTime selectedDate = DateTime.now().add(const Duration(days: 1));
-    final durationController = TextEditingController(text: '7'); // default 7 days
+    final durationController = TextEditingController(text: '7');
 
     await showDialog(
       context: context,
@@ -50,10 +50,9 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Date picker
               ListTile(
                 leading: const Icon(Icons.date_range),
-                title: Text('Дата: ${DateFormat.yMd().format(selectedDate)}'),
+                title: Text('Date: ${DateFormat.yMd().format(selectedDate)}'),
                 onTap: () async {
                   final picked = await showDatePicker(
                     context: context,
@@ -65,18 +64,17 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                     setState(() {
                       selectedDate = picked;
                     });
-                    Navigator.of(context).pop(); // close dialog
-                    _showReminderDialog(type); // reopen with updated date
+                    Navigator.of(context).pop();
+                    _showReminderDialog(type);
                   }
                 },
               ),
               const SizedBox(height: 12),
-              // Duration field
               TextField(
                 controller: durationController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Інтервал (днів)',
+                  labelText: 'Interval (days)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -89,7 +87,8 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final durationDays = int.tryParse(durationController.text) ?? 7;
+                final durationDays =
+                    int.tryParse(durationController.text) ?? 7;
                 await _createReminder(type, selectedDate, durationDays);
                 Navigator.of(context).pop();
               },
@@ -118,17 +117,24 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
 
   Future<void> _createReminder(int type, DateTime date, int duration) async {
     try {
+
+      final reminderStatus = ReminderStatus.Pending;
+
       final reminder = Reminder(
-        reminderId: null, // сервер призначить
-        userPlantId: widget.userPlantId, // ось тут передаємо правильний userPlantId
+        reminderId: null,
+        userPlantId: widget.userPlantId,
         dateOfReminder: date,
         reminderType: type,
         frequency: '$duration',
-        status: 1,
+        status: 0, // pending
         completionType: null,
         previousDate: DateTime.now(),
         userPlant: null,
       );
+
+      // Додамо лог для виводу JSON перед відправкою
+      final jsonBody = reminder.toJson();
+      debugPrint('🔎 Reminder JSON: ${jsonBody}');
 
       final success = await _reminderService.createReminder(reminder, bearer);
 
@@ -152,8 +158,6 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
   }
 
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,17 +179,22 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                 if (imageSnapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (imageSnapshot.hasError) {
-                  return Center(child: Text('❌ Помилка при завантаженні фото: ${imageSnapshot.error}'));
+                  return Center(
+                      child: Text(
+                          '❌ Помилка при завантаженні фото: ${imageSnapshot.error}'));
                 } else {
                   final images = imageSnapshot.data ?? [];
 
                   return FutureBuilder<PlantCareInstruction>(
                     future: _careInstructionFuture,
                     builder: (context, careSnapshot) {
-                      if (careSnapshot.connectionState == ConnectionState.waiting) {
+                      if (careSnapshot.connectionState ==
+                          ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
                       } else if (careSnapshot.hasError) {
-                        return Center(child: Text('❌ Помилка: ${careSnapshot.error}'));
+                        return Center(
+                            child:
+                            Text('❌ Помилка: ${careSnapshot.error}'));
                       } else {
                         final instruction = careSnapshot.data;
 
@@ -209,7 +218,8 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                               const SizedBox(height: 16),
                               Text(
                                 plant.plantName,
-                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 22, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -228,7 +238,8 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                               const Divider(height: 32, thickness: 2),
                               Text(
                                 "Нагадування:",
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 10),
                               Wrap(
@@ -237,30 +248,27 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                                 children: [
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.water_drop),
-                                    label: const Text("Полив"),
-                                    onPressed: () => _showReminderDialog(1),
+                                    label: const Text("Watering"),
+                                    onPressed: () => _showReminderDialog(0),
                                   ),
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.spa),
-                                    label: const Text("Оприскування"),
-                                    onPressed: () => _showReminderDialog(2),
+                                    label: const Text("Fertilizing"),
+                                    onPressed: () => _showReminderDialog(1),
                                   ),
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.wb_sunny),
-                                    label: const Text("Сонце"),
-                                    onPressed: () => _showReminderDialog(3),
+                                    label: const Text("Pruning"),
+                                    onPressed: () => _showReminderDialog(2),
                                   ),
-                                  ElevatedButton.icon(
-                                    icon: const Icon(Icons.eco),
-                                    label: const Text("Удобрення"),
-                                    onPressed: () => _showReminderDialog(4),
-                                  ),
+
                                 ],
                               ),
                               const Divider(height: 32, thickness: 2),
                               Text(
                                 "Інструкції по догляду:",
-                                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 10),
                               if (instruction != null) ...[
@@ -298,5 +306,46 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
         },
       ),
     );
+  }
+}
+
+// Функції-конвертери
+int reminderTypeToInt(ReminderType type) {
+  switch (type) {
+    case ReminderType.Watering:
+      return 0;
+    case ReminderType.Fertilizing:
+      return 1;
+    case ReminderType.Pruning:
+      return 2;
+
+    default:
+      return 3;
+  }
+}
+
+ReminderType reminderTypeFromInt(int value) {
+  switch (value) {
+    case 0:
+      return ReminderType.Watering;
+    case 1:
+      return ReminderType.Fertilizing;
+    case 2:
+      return ReminderType.Pruning;
+    case 3:
+      return ReminderType.Unknown;
+    default:
+      return ReminderType.Unknown;
+  }
+}
+
+int reminderStatusToInt(ReminderStatus status) {
+  switch (status) {
+    case ReminderStatus.Pending:
+      return 0;
+    case ReminderStatus.Completed:
+      return 1;
+    default:
+      return 0;
   }
 }
