@@ -1,6 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:theplantmobile/Models/Reminder.dart';
 
+
+
+// Мапери
+ReminderType reminderTypeFromInt(int value) {
+  switch (value) {
+    case 0:
+      return ReminderType.Watering;
+    case 1:
+      return ReminderType.Fertilizing;
+    case 2:
+      return ReminderType.Pruning;
+    default:
+      return ReminderType.Unknown;
+  }
+}
+
+int reminderTypeToInt(ReminderType type) {
+  switch (type) {
+    case ReminderType.Watering:
+      return 0;
+    case ReminderType.Fertilizing:
+      return 1;
+    case ReminderType.Pruning:
+      return 2;
+    default:
+      return -1;
+  }
+}
+
+String reminderTypeToString(ReminderType type) {
+  switch (type) {
+    case ReminderType.Watering:
+      return 'Watering';
+    case ReminderType.Fertilizing:
+      return 'Fertilizing';
+    case ReminderType.Pruning:
+      return 'Pruning';
+    default:
+      return 'Unknown';
+  }
+}
+
+ReminderStatus reminderStatusFromInt(int value) {
+  switch (value) {
+    case 0:
+      return ReminderStatus.Pending;
+    case 1:
+      return ReminderStatus.Completed;
+    case 2:
+      return ReminderStatus.Snoozed;
+    default:
+      return ReminderStatus.Pending;
+  }
+}
+
+int reminderStatusToInt(ReminderStatus status) {
+  switch (status) {
+    case ReminderStatus.Pending:
+      return 0;
+    case ReminderStatus.Completed:
+      return 1;
+    case ReminderStatus.Snoozed:
+      return 2;
+    default:
+      return 0;
+  }
+}
+
+String reminderStatusToString(ReminderStatus status) {
+  switch (status) {
+    case ReminderStatus.Pending:
+      return 'Pending';
+    case ReminderStatus.Completed:
+      return 'Completed';
+    case ReminderStatus.Snoozed:
+      return 'Snoozed';
+    default:
+      return 'Pending';
+  }
+}
+
 class AddReminderDialog extends StatefulWidget {
   final Function(Reminder) onAdd;
 
@@ -13,11 +94,11 @@ class AddReminderDialog extends StatefulWidget {
 class _AddReminderDialogState extends State<AddReminderDialog> {
   final _formKey = GlobalKey<FormState>();
   late DateTime _dateOfReminder;
-  late int _reminderType;
-  String _frequency = '';
-  int _status = 0;
-  String _completionType = '';
   late DateTime _previousDate;
+  ReminderType _reminderType = ReminderType.Unknown;
+  ReminderStatus _status = ReminderStatus.Pending;
+  String _frequency = '';
+  String _completionType = '';
   String _userPlant = '';
 
   @override
@@ -25,7 +106,6 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
     super.initState();
     _dateOfReminder = DateTime.now();
     _previousDate = DateTime.now();
-    _reminderType = 0;
   }
 
   Future<void> _selectDate(BuildContext context, bool isReminderDate) async {
@@ -69,23 +149,41 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                 decoration: const InputDecoration(labelText: 'Completion Type'),
                 onSaved: (value) => _completionType = value ?? '',
               ),
-              DropdownButtonFormField<int>(
+              const SizedBox(height: 8),
+              DropdownButtonFormField<ReminderType>(
                 decoration: const InputDecoration(labelText: 'Reminder Type'),
                 value: _reminderType,
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('Type 0')),
-                  DropdownMenuItem(value: 1, child: Text('Type 1')),
-                ],
-                onChanged: (val) => setState(() => _reminderType = val ?? 0),
+                items: ReminderType.values.map((type) {
+                  return DropdownMenuItem(
+                    value: type,
+                    child: Text(reminderTypeToString(type)),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _reminderType = val;
+                    });
+                  }
+                },
               ),
-              DropdownButtonFormField<int>(
+              const SizedBox(height: 8),
+              DropdownButtonFormField<ReminderStatus>(
                 decoration: const InputDecoration(labelText: 'Status'),
                 value: _status,
-                items: const [
-                  DropdownMenuItem(value: 0, child: Text('Status 0')),
-                  DropdownMenuItem(value: 1, child: Text('Status 1')),
-                ],
-                onChanged: (val) => setState(() => _status = val ?? 0),
+                items: ReminderStatus.values.map((status) {
+                  return DropdownMenuItem(
+                    value: status,
+                    child: Text(reminderStatusToString(status)),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _status = val;
+                    });
+                  }
+                },
               ),
               const SizedBox(height: 12),
               Row(
@@ -120,14 +218,15 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
           onPressed: () {
             if (_formKey.currentState?.validate() ?? false) {
               _formKey.currentState?.save();
-
+              int remType = reminderTypeToInt(_reminderType);
+              int status = reminderStatusToInt(_status);
               final newReminder = Reminder(
-                reminderId: '', // сервер сам створить ID
+                reminderId: '', // сервер створює ID
                 userPlantId: _userPlant,
                 dateOfReminder: _dateOfReminder,
-                reminderType: _reminderType,
+                reminderType: (remType),
                 frequency: _frequency,
-                status: _status,
+                status: (status),
                 completionType: _completionType,
                 previousDate: _previousDate,
                 userPlant: _userPlant,
