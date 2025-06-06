@@ -9,6 +9,7 @@ import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Services/ReminderService.dart';
 import 'package:theplantmobile/Services/PlantOverviewService.dart';
 import 'package:theplantmobile/Models/OverviewType.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class UserPlantDetailsPage extends StatefulWidget {
   final String plantId;
@@ -23,6 +24,9 @@ class UserPlantDetailsPage extends StatefulWidget {
   @override
   State<UserPlantDetailsPage> createState() => _UserPlantDetailsPageState();
 }
+
+int _currentPage = 0;
+late  PageController _pageController = PageController();
 
 class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
   late Future<Plant> _plantFuture;
@@ -42,10 +46,12 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
     _plantImagesFuture = PlantService().getPlantImages(widget.plantId, bearer);
     _plantOverviewFuture =
         PlantOverviewService().getPlantOverviewByPlantId(widget.plantId, bearer);
-
-
+    _pageController = PageController();
   }
-
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
   IconData _getOverviewIcon(OverviewType type) {
     switch (type) {
       case OverviewType.Water:
@@ -122,8 +128,21 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                         pickedTime.hour,
                         pickedTime.minute,
                       );
-                      Navigator.of(context).pop();
-                      _showReminderDialog(type); // refresh dialog with updated dateTime
+                      if (selectedDateTime.isBefore(DateTime.now())) {
+                        // Показати помилку
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                '❌ Please select a future date and time.'),
+                          ),
+                        );
+                      } else {
+                        setState(() {
+                          selectedDateTime = DateTime.now();
+                        });
+                        Navigator.of(context).pop();
+                        _showReminderDialog(type);
+                      }
                     }
                   }
                 },
@@ -164,9 +183,9 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
       case 0:
         return 'Water';
       case 1:
-        return 'Fertilizer';
+        return 'Prunung';
       case 2:
-        return 'Sunlight';
+        return 'Fertilizing';
       default:
         return 'Reminder';
     }
@@ -250,17 +269,63 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               if (images.isNotEmpty)
-                                Center(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      images.first.url,
+                                Column(
+                                  children: [
+                                    SizedBox(
                                       height: 450,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
+                                      child: Stack(
+                                        alignment: Alignment.bottomCenter,
+                                        children: [
+                                          PageView.builder(
+                                            controller: _pageController,
+                                            itemCount: images.length,
+                                            onPageChanged: (index) {
+                                              setState(() {
+                                                _currentPage = index;
+                                              });
+                                            },
+                                            itemBuilder: (context, index) {
+                                              return Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Image.network(
+                                                    images[index].url,
+                                                    fit: BoxFit.cover,
+                                                    width: double.infinity,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                          Positioned(
+                                            bottom: 8,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.5), // напівпрозорий чорний
+                                                borderRadius: BorderRadius.circular(20),
+                                              ),
+                                              child: SmoothPageIndicator(
+                                                controller: _pageController,
+                                                count: images.length,
+                                                effect: WormEffect(
+                                                  activeDotColor: Colors.white,
+                                                  dotColor: Colors.green,
+                                                  dotHeight: 8,
+                                                  dotWidth: 8,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
+
+
+                              const Divider(height: 12, thickness: 2),
                               const SizedBox(height: 16),
                               Text(
                                 plant.plantName,
@@ -299,12 +364,12 @@ class _UserPlantDetailsPageState extends State<UserPlantDetailsPage> {
                                   ),
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.spa),
-                                    label: const Text("Fertilizer"),
+                                    label: const Text("Pruning"),
                                     onPressed: () => _showReminderDialog(1),
                                   ),
                                   ElevatedButton.icon(
-                                    icon: const Icon(Icons.wb_sunny),
-                                    label: const Text("Sunlight"),
+                                    icon: const Icon(Icons.shopping_bag),
+                                    label: const Text("Fertilizing"),
                                     onPressed: () => _showReminderDialog(2),
                                   ),
                                 ],

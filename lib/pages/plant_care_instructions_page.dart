@@ -7,6 +7,7 @@ import 'package:theplantmobile/Models/PlantImage.dart';
 import 'package:theplantmobile/Services/PlantService.dart';
 import 'package:theplantmobile/Models/PlantOverview.dart';
 import 'package:theplantmobile/Models/OverviewType.dart';
+import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class PlantCareInstructionsPage extends StatefulWidget {
   final String plantId;
@@ -16,7 +17,13 @@ class PlantCareInstructionsPage extends StatefulWidget {
   @override
   State<PlantCareInstructionsPage> createState() => _PlantCareInstructionsPageState();
 }
+void dispose() {
+  _pageController.dispose();
 
+}
+
+late PageController _pageController = PageController();
+int _currentPage = 0;
 class _PlantCareInstructionsPageState extends State<PlantCareInstructionsPage> {
   late Future<Plant> _plantFuture;
   late Future<PlantCareInstruction> _careInstructionFuture;
@@ -29,7 +36,7 @@ class _PlantCareInstructionsPageState extends State<PlantCareInstructionsPage> {
     try {
       final overviewList = await PlantOverviewService()
           .getPlantOverviewByPlantId(widget.plantId, bearer);
-      return overviewList; // Очікуємо список!
+      return overviewList;
     } catch (e) {
       print('❗ Error loading plant overview: $e');
       return [];
@@ -84,6 +91,7 @@ class _PlantCareInstructionsPageState extends State<PlantCareInstructionsPage> {
     _careInstructionFuture = PlantService().getPlantCareInstructions(widget.plantId, bearer);
     _plantImagesFuture = PlantService().getPlantImages(widget.plantId, bearer);
     _plantOverviewFuture = _fetchPlantOverview();
+    _pageController = PageController();
   }
 
   @override
@@ -135,17 +143,63 @@ class _PlantCareInstructionsPageState extends State<PlantCareInstructionsPage> {
                                   children: [
                                     // Image
                                     if (images.isNotEmpty)
-                                      Center(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: Image.network(
-                                            images.first.url,
+                                      Column(
+                                        children: [
+                                          SizedBox(
                                             height: 450,
-                                            width: double.infinity,
-                                            fit: BoxFit.cover,
+                                            child: Stack(
+                                              alignment: Alignment.bottomCenter,
+                                              children: [
+                                                PageView.builder(
+                                                  controller: _pageController,
+                                                  itemCount: images.length,
+                                                  onPageChanged: (index) {
+                                                    setState(() {
+                                                      _currentPage = index;
+                                                    });
+                                                  },
+                                                  itemBuilder: (context, index) {
+                                                    return Padding(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                      child: ClipRRect(
+                                                        borderRadius: BorderRadius.circular(12),
+                                                        child: Image.network(
+                                                          images[index].url,
+                                                          fit: BoxFit.cover,
+                                                          width: double.infinity,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                Positioned(
+                                                  bottom: 8,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.black.withOpacity(0.5), // напівпрозорий чорний
+                                                      borderRadius: BorderRadius.circular(20),
+                                                    ),
+                                                    child: SmoothPageIndicator(
+                                                      controller: _pageController,
+                                                      count: images.length,
+                                                      effect: WormEffect(
+                                                        activeDotColor: Colors.white,
+                                                        dotColor: Colors.green,
+                                                        dotHeight: 8,
+                                                        dotWidth: 8,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
+
+
+                                    const Divider(height: 12, thickness: 2),
                                     const SizedBox(height: 16),
                                     // Name
                                     Text(
