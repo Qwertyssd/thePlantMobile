@@ -71,6 +71,26 @@ class UserPlantService {
     }
   }
 
+  Future<bool> deleteUserPlant(String userPlantId) async {
+    final url = Uri.parse('${_baseUrl}UserPlant/$userPlantId');
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+      if (_hardcodedToken != null) 'Authorization': _hardcodedToken!,
+    };
+
+    try {
+      final ioClient = _createIOClient();
+      final response = await ioClient.delete(url, headers: headers);
+
+      print('📤 Delete Status code: ${response.statusCode}');
+      print('📤 Delete Response body: ${response.body}');
+
+      return response.statusCode == 200 || response.statusCode == 204;
+    } catch (e) {
+      print('❗ Помилка при видаленні UserPlant: $e');
+      rethrow;
+    }
+  }
 
   Future<bool> addUserPlant(UserPlant userPlant) async {
     final url = Uri.parse('${_baseUrl}UserPlant');
