@@ -50,24 +50,25 @@ class UserPlant {
       'plantId': plantId,
     };
 
-    if (userPlantId != null) {
+
       data['userPlantId'] = userPlantId;
-    }
 
-    if (userPlantName != null) {
+
+
       data['userPlantName'] = userPlantName;
-    }
 
-    if (plant != null) {
-      data['plant'] = plant!.toJson();
-    }
+    data['user']=null;
 
-    if (reminders != null) {
-      data['reminders'] = reminders!.map((x) => x.toJson()).toList();
-    }
+      data['plant'] = null ;
 
+
+
+      data['reminders'] = null;
+
+    print (data);
     return data;
   }
+
 
 }
 
