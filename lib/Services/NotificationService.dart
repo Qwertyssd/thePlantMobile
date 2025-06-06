@@ -32,7 +32,7 @@ class NotificationService {
   NotificationDetails notificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
-        'daily_channel_id', // ОБЯЗАТЕЛЬНО!
+        'daily_channel_id',
         'Daily Notifications',
         channelDescription: 'Daily Notification Channel',
         importance: Importance.max,
