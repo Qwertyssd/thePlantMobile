@@ -299,13 +299,13 @@ class _UserGardenPageState extends State<UserGardenPage> {
                                         }
                                       }
                                     }
-
-
-
                                   },
 
                                   itemBuilder: (context) => [
-
+                                  const PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text('Edit name'),
+                                  ),
                                   const PopupMenuItem(
                                     value: 'delete',
                                     child: Text('Delete plant'),
