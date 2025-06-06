@@ -114,4 +114,170 @@ Future<bool> createReminder(Reminder reminder, String bearerToken) async {
   }
 }
 
+Future<bool> updateReminderStatus(Reminder reminder, int newStatus, String bearerToken) async {
+  final url = Uri.parse('${_baseUrl}Reminders');
+  final ioClient = createHttpClient();
+
+  try {
+    // Обчислюємо нову дату нагадування
+    final newDateOfReminder = reminder.dateOfReminder.add(
+      Duration(days: int.tryParse(reminder.frequency ?? '0') ?? 0),
+    );
+
+
+    final updatedReminder = Reminder(
+      reminderId: reminder.reminderId,
+      userPlantId: reminder.userPlantId,
+      dateOfReminder: newDateOfReminder,
+      reminderType: reminder.reminderType,
+      frequency: reminder.frequency,
+      status: newStatus, // Overdue
+      completionType: reminder.completionType,
+      previousDate: DateTime.now(),
+      userPlant: reminder.userPlant,
+    );
+    print("Updated REM : ${updatedReminder.dateOfReminder}");
+    final body = jsonEncode(updatedReminder.toJsonUpdate());
+    print("Date ${int.tryParse(reminder.frequency!)}");
+
+    final response = await ioClient.put(
+      url,
+      headers: {
+        'Authorization': 'Bearer $bearerToken',
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
+
+    print('📤 PATCH body: $body');
+    print('📥 Status code: ${response.statusCode}');
+    print('📥 Response body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode==204) {
+      return true;
+    } else {
+      print('❗ Server error: ${response.statusCode}');
+      print('❗ Response body: ${response.body}');
+      throw Exception('Failed to update reminder status. Server responded with status code: ${response.statusCode}');
+    }
+  } on SocketException catch (e) {
+    print('❗ Network error: $e');
+    throw Exception('Network error: ${e.message}');
+  } on FormatException catch (e) {
+    print('❗ Invalid response format: $e');
+    throw Exception('Invalid response format: ${e.message}');
+  } catch (e) {
+    print('❗ Unexpected error: $e');
+    throw Exception('Unexpected error: $e');
+  }
+}
+
+Future<bool> checkAndUpdateReminderStatus(Reminder reminder, String bearerToken) async {
+  final now = DateTime.now();
+  final ioClient = createHttpClient();
+  final url = Uri.parse('${_baseUrl}Reminders');
+
+  try {
+    if (reminder.dateOfReminder.isBefore(now) ||
+        reminder.dateOfReminder.isAtSameMomentAs(now)) {
+      if (reminder.status != 2) {
+        // Створюємо оновлений Reminder з новими полями:
+
+
+        final updatedReminder = Reminder(
+          reminderId: reminder.reminderId,
+          userPlantId: reminder.userPlantId,
+          dateOfReminder: reminder.dateOfReminder,
+          reminderType: reminder.reminderType,
+          frequency: reminder.frequency,
+          status: 2, // Overdue
+          completionType: reminder.completionType,
+          previousDate: reminder.previousDate,
+          userPlant: reminder.userPlant,
+        );
+        print("Updated REM : ${updatedReminder.dateOfReminder}");
+        final body = jsonEncode(updatedReminder.toJsonUpdate());
+
+        final response = await ioClient.put(
+          url,
+          headers: {
+            'Authorization': 'Bearer $bearerToken',
+            'Content-Type': 'application/json',
+          },
+          body: body,
+        );
+
+        print('📤 CheckAndUpdate request body: $body');
+        print('📥 Status code: ${response.statusCode}');
+        print('📥 Response body: ${response.body}');
+
+        if (response.statusCode == 200 || response.statusCode == 204) {
+          print('✅ Статус нагадування оновлено на Overdue');
+          return true;
+        } else {
+          print('❗ Server error: ${response.statusCode}');
+          print('❗ Response body: ${response.body}');
+          throw Exception(
+              'Failed to update reminder. Server responded with status code: ${response.statusCode}');
+        }
+      } else {
+        print('ℹ️ Статус нагадування вже Overdue');
+        return false;
+      }
+    } else {
+      print('✅ Нагадування актуальне, оновлення не потрібне');
+      return false;
+    }
+  } on SocketException catch (e) {
+    print('❗ Network error: $e');
+    throw Exception('Network error: ${e.message}');
+  } on FormatException catch (e) {
+    print('❗ Invalid response format: $e');
+    throw Exception('Invalid response format: ${e.message}');
+  } catch (e) {
+    print('❗ Unexpected error: $e');
+    throw Exception('Unexpected error: $e');
+  }
+
+}
+
+Future<bool> deleteReminder(String reminderId, String bearerToken) async {
+  final url = Uri.parse('${_baseUrl}Reminders/$reminderId');
+  final ioClient = createHttpClient();
+
+  try {
+    final response = await ioClient.delete(
+      url,
+      headers: {
+        'Authorization': 'Bearer $bearerToken',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    print('📤 DELETE request to $url');
+    print('📥 Status code: ${response.statusCode}');
+    print('📥 Response body: ${response.body}');
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return true;
+    } else {
+      print('❗ Server error: ${response.statusCode}');
+      print('❗ Response body: ${response.body}');
+      throw Exception('Failed to delete reminder. Server responded with status code: ${response.statusCode}');
+    }
+  } on SocketException catch (e) {
+    print('❗ Network error: $e');
+    throw Exception('Network error: ${e.message}');
+  } on FormatException catch (e) {
+    print('❗ Invalid response format: $e');
+    throw Exception('Invalid response format: ${e.message}');
+  } catch (e) {
+    print('❗ Unexpected error: $e');
+    throw Exception('Unexpected error: $e');
+  }
+}
+
+
+
+
 }
