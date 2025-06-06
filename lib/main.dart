@@ -7,10 +7,10 @@ import 'package:theplantmobile/Services/UserPlantsService.dart';
 import 'global.dart';
 import 'Services/UserService.dart';
 import 'firebase_options.dart';
-import 'pages/home_page.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
-
+import 'package:flutter/services.dart';
 import 'pages/reminders_page.dart';
 import 'pages/user_garden_page.dart';
 
@@ -20,20 +20,47 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.green,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.green,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Navigation Example',
+      theme: ThemeData(
+        primarySwatch: Colors.green,
+        scaffoldBackgroundColor: Colors.white,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          iconTheme: IconThemeData(color: Colors.white),
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: Colors.white,
+          indicatorColor: Colors.green[300],
+          labelTextStyle: MaterialStateProperty.all(
+            const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
       home: const AuthGate(),
       navigatorObservers: [routeObserver],
     );
   }
 }
+
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -51,6 +78,14 @@ class _AuthGateState extends State<AuthGate> {
   void initState() {
     super.initState();
     _checkAuth();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.green, // status bar color
+        statusBarIconBrightness: Brightness.light, // status bar icon color
+        systemNavigationBarColor: Colors.green, // navigation bar color
+        systemNavigationBarIconBrightness: Brightness.light, // navigation bar icon color
+      ),
+    );
   }
 
   Future<void> _checkAuth() async {
@@ -241,7 +276,7 @@ class _HomeNavigatorState extends State<HomeNavigator> {
 
 
   static final List<Widget> _pages = <Widget>[
-    HomeTabPage(),
+
     GardenPage(),
     UserGardenPage(userPlantService: userPlantService, plantService: plantService,),
     RemindersPage(),
@@ -261,9 +296,9 @@ class _HomeNavigatorState extends State<HomeNavigator> {
         onDestinationSelected: _onItemTapped,
         destinations: const <NavigationDestination>[
           NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Garden'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'UserGarden'),
-          NavigationDestination(icon: Icon(Icons.explore), label: 'Notification'),
+
+          NavigationDestination(icon: Icon(FontAwesomeIcons.leaf,  size: 24), label: 'UserGarden'),
+          NavigationDestination(icon: Icon(Icons.notifications), label: 'Notification'),
           NavigationDestination(icon: Icon(Icons.person), label: 'Account'),
         ],
       ),
