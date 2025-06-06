@@ -14,18 +14,16 @@ import 'pages/garden_page.dart';
 import 'pages/account_page.dart';
 import 'pages/reminders_page.dart';
 import 'pages/user_garden_page.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
+
 
 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService().initNotification();
 
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
