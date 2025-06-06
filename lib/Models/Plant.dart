@@ -23,6 +23,23 @@ class Plant {
     this.plantImages,
   });
 
+  Plant copyWith({
+    String? plantId,
+    String? plantName,
+    String? category,
+    String? scientificTitle,
+    List<PlantImage>? plantImages,
+  }) {
+    return Plant(
+      plantId: plantId ?? this.plantId,
+      plantName: plantName ?? this.plantName,
+      category: category ?? this.category,
+      scientificTitle: scientificTitle ?? this.scientificTitle,
+      plantImages: plantImages ?? this.plantImages,
+
+    );
+  }
+
   factory Plant.fromJson(Map<String, dynamic> json) => Plant(
     plantId: json['plantId'],
     plantName: json['plantName'],

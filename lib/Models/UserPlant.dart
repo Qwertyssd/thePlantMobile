@@ -18,7 +18,21 @@ class UserPlant {
     this.plant,
     this.reminders,
   });
-
+  UserPlant copyWith({
+    String? userPlantId,
+    String? userId,
+    String? plantId,
+    String? userPlantName,
+    Plant? plant,
+  }) {
+    return UserPlant(
+      userPlantId: userPlantId ?? this.userPlantId,
+      userId: userId ?? this.userId,
+      plantId: plantId ?? this.plantId,
+      userPlantName: userPlantName ?? this.userPlantName,
+      plant: plant ?? this.plant,
+    );
+  }
   factory UserPlant.fromJson(Map<String, dynamic> json) => UserPlant(
     userPlantId: json['userPlantId'],
     userId: json['userId'],
