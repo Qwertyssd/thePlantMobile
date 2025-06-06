@@ -5,6 +5,7 @@ import 'package:http/io_client.dart';
 import 'dart:io';
 import 'package:theplantmobile/Models/Reminder.dart';
 
+
 class ReminderService {
 
 final _baseUrl = baseUrl;
@@ -93,6 +94,7 @@ Future<bool> createReminder(Reminder reminder, String bearerToken) async {
     print('📤 Request body: $body');
     print('📥 Status code: ${response.statusCode}');
     print('📥 Response body: ${response.body}');
+
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       return true;
